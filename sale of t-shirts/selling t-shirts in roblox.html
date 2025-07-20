@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин футболок Roblox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        body {
+            font-family: 'Roboto Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Roblox T-Shirt Shop</h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="#home" class="hover:underline">Главная</a></li>
+                    <li><a href="#shop" class="hover:underline">Магазин</a></li>
+                    <li><a href="#cart" class="hover:underline">Корзина</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section id="home" class="py-12 bg-cover bg-center" style="background-image: url('https://via.placeholder.com/1200x400')">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold text-black mb-4">Добро пожаловать в наш магазин одежды Roblox!</h2>
+            <p class="text-lg text-black mb-6">Найдите уникальные одежды для вашего аватара в Roblox.</p>
+            <a href="#shop" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Перейти в магазин</a>
+        </div>
+    </section>
+
+    <section id="shop" class="py-12">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">-наша одежда-</h2>
+            <div id="tshirt-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+        </div>
+    </section>
+
+    <section id="cart" class="py-12 bg-gray-200">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">Корзина</h2>
+            <div id="cart-items" class="space-y-4">
+            </div>
+            <div class="text-center mt-6">
+                <p id="cart-total" class="text-xl font-semibold">Итого: 0 Robux</p>
+                <button id="checkout-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mt-4">Оформить заказ</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h3 id="modal-title" class="text-2xl font-semibold mb-4 text-gray-700"></h3>
+            <img id="modal-image" src="" alt="T-Shirt Image" class="w-full h-64 object-contain mb-4 rounded">
+            <p id="modal-description" class="text-lg text-gray-700"></p>
+        </div>
+    </div>
+
+    <footer class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Roblox T-Shirt Shop. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <audio id="click-sound" preload="auto">
+        <source src="button_click.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const tshirts = [
+            {
+                id: 1,
+                name: "Cat T-Shirt",
+                price: 5,
+                image: "cat1.png",
+                robloxLink: "https://www.roblox.com/catalog/104860220180464/cat",
+                description: "милый задумчивый котик который хорошо сидеть на ваше тело и украсит ваш аватар",
+                modalImage: "cat2.png"
+            },
+            {
+                id: 2,
+                name: "Gray Business Suit",
+                price: 10,
+                image: "coat1.png",
+                robloxLinkJacket: "https://www.roblox.com/catalog/137849938041847/gray-business-suit",
+                robloxLinkPants: "https://www.roblox.com/catalog/71436755963602/gray-business-suit",
+                description: "этот серый деловой костюм очень красивый и он подойдёт для скина мафии или бизнесмена",
+                modalImage: "coat2.png"
+            }
+        ];
+
+        let cart = [];
+
+        function renderTshirts() {
+            const tshirtList = document.getElementById('tshirt-list');
+            tshirtList.innerHTML = '';
+            tshirts.forEach(tshirt => {
+                const tshirtCard = `
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        <img src="${tshirt.image}" alt="${tshirt.name}" class="w-full h-48 object-contain rounded">
+                        <h3 class="text-lg font-semibold mt-2 text-gray-700">${tshirt.name}</h3>
+                        <p class="text-gray-700">${tshirt.price} Robux</p>
+                        <button onclick="addToCart(${tshirt.id}); playClickSound();" class="bg-green-600 text-white py-2 px-4 rounded mt-2 hover:bg-green-700 w-full">Добавить в корзину</button>
+                        ${tshirt.description ? `<button onclick="showModal(${tshirt.id}); playClickSound();" class="bg-purple-600 text-white py-2 px-4 rounded mt-2 hover:bg-purple-700 w-full">Посмотреть больше</button>` : ''}
+                    </div>
+                `;
+                tshirtList.innerHTML += tshirtCard;
+            });
+        }
+
+        renderTshirts();
+
+        function showModal(tshirtId) {
+            const tshirt = tshirts.find(t => t.id === tshirtId);
+            if (tshirt.description) {
+                document.getElementById('modal-title').textContent = tshirt.name;
+                document.getElementById('modal-image').src = tshirt.modalImage || tshirt.image;
+                document.getElementById('modal-description').textContent = tshirt.description;
+                document.getElementById('modal').style.display = 'block';
+            }
+        }
+
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'none';
+            playClickSound();
+        });
+
+        function addToCart(tshirtId) {
+            const tshirt = tshirts.find(t => t.id === tshirtId);
+            cart.push(tshirt);
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                total += item.price;
+                const cartItem = `
+                    <div class="bg-white rounded-lg shadow-md p-4 flex justify-between items-center">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-700">${item.name}</h4>
+                            <p class="text-gray-700">${item.price} Robux</p>
+                        </div>
+                        <div class="space-x-2">
+                            <button onclick="removeFromCart(${index}); playClickSound();" class="bg-red-600 text-white py-1 px-2 rounded hover:bg-red-700">Удалить</button>
+                            ${item.robloxLink ? `<a href="${item.robloxLink}" target="_blank" class="bg-blue-600 text-white py-1 px-2 rounded hover:bg-blue-700" onclick="playClickSound();">Купить</a>` : ''}
+                            ${item.robloxLinkJacket && item.robloxLinkPants ? `
+                                <a href="${item.robloxLinkJacket}" target="_blank" class="bg-blue-600 text-white py-1 px-2 rounded hover:bg-blue-700" onclick="playClickSound();">Купить куртку</a>
+                                <a href="${item.robloxLinkPants}" target="_blank" class="bg-blue-600 text-white py-1 px-2 rounded hover:bg-blue-700" onclick="playClickSound();">Купить штаны</a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                cartItems.innerHTML += cartItem;
+            });
+
+            document.getElementById('cart-total').textContent = `Итого: ${total} Robux`;
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        document.getElementById('checkout-btn').addEventListener('click', () => {
+            if (cart.length > 0) {
+                cart.forEach(item => {
+                    if (item.robloxLink) {
+                        window.open(item.robloxLink, '_blank');
+                    } else if (item.robloxLinkJacket && item.robloxLinkPants) {
+                        window.open(item.robloxLinkJacket, '_blank');
+                        window.open(item.robloxLinkPants, '_blank');
+                    }
+                });
+                alert('Открыты страницы Roblox для всех товаров в корзине!');
+                cart = [];
+                updateCart();
+            } else {
+                alert('Ваша корзина пуста!');
+            }
+            playClickSound();
+        });
+
+        function playClickSound() {
+            const clickSound = document.getElementById('click-sound');
+            if (clickSound) {
+                console.log('Attempting to play click sound...');
+                clickSound.currentTime = 0; // Rewind to start
+                clickSound.play().catch(error => {
+                    console.error('Ошибка воспроизведения звука:', error);
+                    if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+                        console.log('Автовоспроизведение заблокировано. Убедитесь, что файл существует и путь верен:', clickSound.src);
+                    }
+                });
+            } else {
+                console.error('Audio element not found!');
+            }
+        }
+
+        // Add event listeners to dynamically created buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
+                playClickSound();
+            }
+        });
+    </script>
+</body>
+</html>
